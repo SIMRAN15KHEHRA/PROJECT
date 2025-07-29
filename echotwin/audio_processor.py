@@ -132,7 +132,7 @@ class AudioProcessor:
     def apply_bandpass_filter(self, 
                              audio: np.ndarray, 
                              low_freq: float = 80, 
-                             high_freq: float = 8000) -> np.ndarray:
+                             high_freq: float = 7500) -> np.ndarray:
         """
         Apply bandpass filter to focus on speech frequencies.
         
@@ -145,8 +145,17 @@ class AudioProcessor:
             Filtered audio signal
         """
         nyquist = self.target_sr / 2
+        
+        # Ensure frequencies are within valid range
+        low_freq = max(1, min(low_freq, nyquist - 1))
+        high_freq = max(low_freq + 1, min(high_freq, nyquist - 1))
+        
         low = low_freq / nyquist
         high = high_freq / nyquist
+        
+        # Ensure normalized frequencies are in valid range (0, 1)
+        low = max(0.001, min(low, 0.999))
+        high = max(low + 0.001, min(high, 0.999))
         
         # Design butterworth bandpass filter
         b, a = butter(4, [low, high], btype='band')
